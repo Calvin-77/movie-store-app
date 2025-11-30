@@ -1,0 +1,35 @@
+class UserRepository {
+    async addUser(registerUser) {
+        throw new Error("USER_REPOSITORY.METHOD_NOT_IMPLEMENTED");
+    }
+
+    async verifyAvailableUsername(username) {
+        throw new Error("USER_REPOSITORY.METHOD_NOT_IMPLEMENTED");
+    }
+
+    async getPasswordByUsername(username) {
+        throw new Error("USER_REPOSITORY.METHOD_NOT_IMPLEMENTED");
+    }
+
+    async getIdByUsername(username) {
+        throw new Error("USER_REPOSITORY.METHOD_NOT_IMPLEMENTED");
+    }
+
+    async isAdmin(id) {
+        throw new Error("USER_REPOSITORY.METHOD_NOT_IMPLEMENTED");
+    }
+
+    async getUserById(id) {
+        throw new Error("USER_REPOSITORY.METHOD_NOT_IMPLEMENTED");
+    }
+
+    async updateBalance(userId, amount) {
+        throw new Error("USER_REPOSITORY.METHOD_NOT_IMPLEMENTED");
+    }
+
+    async updateUser(id, userDetails) {
+        throw new Error("USER_REPOSITORY.METHOD_NOT_IMPLEMENTED");
+    }
+}
+
+module.exports = UserRepository;
