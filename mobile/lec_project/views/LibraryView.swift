@@ -59,29 +59,7 @@ struct LibraryView: View {
                             ForEach(purchasedMovies) { movie in
                                 NavigationLink(destination: MovieDetailView(movieId: movie.id)) {
                                     VStack(alignment: .leading, spacing: 8) {
-                                        if let imageUrl = movie.image, let url = URL(string: imageUrl) {
-                                            AsyncImage(url: url) { image in
-                                                image
-                                                    .resizable()
-                                                    .scaledToFill()
-                                            } placeholder: {
-                                                Rectangle()
-                                                    .fill(Color.gray.opacity(0.3))
-                                            }
-                                            .frame(height: 180)
-                                            .frame(maxWidth: .infinity)
-                                            .clipped()
-                                            .cornerRadius(8)
-                                        } else {
-                                            Rectangle()
-                                                .fill(Color.gray.opacity(0.3))
-                                                .frame(height: 180)
-                                                .cornerRadius(8)
-                                                .overlay(
-                                                    Image(systemName: "photo")
-                                                        .foregroundColor(.gray)
-                                                )
-                                        }
+                                        MovieImageView(imageString: movie.image, cornerRadius: 8, aspectRatio: 2/3)
                                         
                                         Text(movie.title)
                                             .font(.headline)
@@ -117,11 +95,9 @@ struct LibraryView: View {
                 // Sort by purchase date descending (newest first)
                 return parseDate(m1.purchaseDate) > parseDate(m2.purchaseDate)
             }
-            print("✅ Loaded \(purchasedMovies.count) purchased movies")
             isLoading = false
         } catch {
             errorMessage = "Failed to load purchased movies: \(error.localizedDescription)"
-            print("❌ Error: \(error.localizedDescription)")
             isLoading = false
         }
     }

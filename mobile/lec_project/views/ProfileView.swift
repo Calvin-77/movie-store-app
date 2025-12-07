@@ -49,6 +49,7 @@ struct ProfileView: View {
                                 .foregroundColor(.gray)
                             HStack {
                                 TextField("Name", text: $name)
+                                    .textInputAutocapitalization(.never)
                                     .padding()
                                     .background(Color(hex: 0x2D1D1D))
                                     .foregroundColor(.white)
@@ -195,15 +196,9 @@ struct ProfileView: View {
             .task {
                 do {
                     let user = try await authController.getProfile()
-                    print("✅ Profile loaded:")
-                    print("   Username: \(user.username)")
-                    print("   Email: \(user.email)")
-                    print("   Balance: \(user.balance)")
-                    
                     name = user.username
                     email = user.email
                 } catch {
-                    print("❌ Error loading profile: \(error)")
                     // keep fields empty on failure
                 }
             }

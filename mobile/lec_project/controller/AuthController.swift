@@ -79,11 +79,6 @@ class AuthController: ObservableObject {
         request.httpMethod = "GET"
         request.setValue("Bearer \(getToken())", forHTTPHeaderField: "Authorization")
         let (data, _) = try await URLSession.shared.data(for: request)
-        
-        if let jsonString = String(data: data, encoding: .utf8) {
-            print("Profile Response: \(jsonString)")
-        }
-        
         let response = try JSONDecoder().decode(UserProfileResponse.self, from: data)
         return response.data
     }

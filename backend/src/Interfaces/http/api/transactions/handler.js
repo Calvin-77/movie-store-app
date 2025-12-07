@@ -1,6 +1,7 @@
 const TopupBalanceUseCase = require('../../../../Applications/use_case/TopupBalanceUseCase');
 const PurchaseMovieUseCase = require('../../../../Applications/use_case/PurchaseMovieUseCase');
 const GetUserTopupHistoryUseCase = require('../../../../Applications/use_case/GetUserTopupHistoryUseCase');
+const GetUserTransactionHistoryUseCase = require('../../../../Applications/use_case/GetUserTransactionHistoryUseCase');
 const GetAllSalesDataUseCase = require('../../../../Applications/use_case/GetAllSalesDataUseCase');
 
 class TransactionsHandler {
@@ -10,6 +11,7 @@ class TransactionsHandler {
         this.topupBalanceHandler = this.topupBalanceHandler.bind(this);
         this.purchaseMovieHandler = this.purchaseMovieHandler.bind(this);
         this.getUserTopupHistoryHandler = this.getUserTopupHistoryHandler.bind(this);
+        this.getUserTransactionHistoryHandler = this.getUserTransactionHistoryHandler.bind(this);
         this.getAllSalesDataHandler = this.getAllSalesDataHandler.bind(this);
     }
 
@@ -48,6 +50,20 @@ class TransactionsHandler {
 
         const getUserTopupHistoryUseCase = this._container.getInstance(GetUserTopupHistoryUseCase.name);
         const transactions = await getUserTopupHistoryUseCase.execute({ userId });
+
+        return h.response({
+            status: 'success',
+            data: {
+                transactions,
+            },
+        });
+    }
+
+    async getUserTransactionHistoryHandler(request, h) {
+        const { id: userId } = request.auth.credentials;
+
+        const getUserTransactionHistoryUseCase = this._container.getInstance(GetUserTransactionHistoryUseCase.name);
+        const transactions = await getUserTransactionHistoryUseCase.execute({ userId });
 
         return h.response({
             status: 'success',

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useToast } from '../hooks/useToast'
+import { fetchWithAuth } from '../utils/api'
 
 function Home() {
   const { showToast } = useToast()
@@ -19,9 +20,9 @@ function Home() {
           return
         }
 
-        const salesResponse = await fetch('http://localhost:3001/sales', {
+        const salesResponse = await fetchWithAuth('http://localhost:5000/sales', {
+          method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         })
@@ -38,7 +39,12 @@ function Home() {
           showToast(salesData.message || 'Failed to load sales data', 'error')
         }
 
-        const moviesResponse = await fetch('http://localhost:3001/movies')
+        const moviesResponse = await fetchWithAuth('http://localhost:5000/movies', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
         if (!moviesResponse.ok) {
           throw new Error(`HTTP error! status: ${moviesResponse.status}`)
         }
@@ -162,135 +168,121 @@ function Home() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gray-50">
-      <header className="bg-white shadow-sm w-full">
-        <div className="max-w-7xl mx-auto px-6 py-8">
+    <div className="min-h-screen w-full bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 backdrop-blur-sm">
+      <header className="bg-white/80 backdrop-blur-lg shadow-sm w-full border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 py-6">
           <div>
-            <h1 className="text-4xl font-bold text-purple-600 mb-2">Dashboard</h1>
-            <p className="text-gray-600">Welcome back to Movie Admin</p>
+            <p className="text-emerald-500 text-sm font-medium mb-1">Welcome back, Admin 👋</p>
+            <h1 className="text-4xl font-bold text-gray-900">Dashboard</h1>
           </div>
         </div>
       </header>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gray-100 rounded-lg p-6 hover:bg-gray-200 transition-colors duration-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Total Movies</p>
-                <p className="text-3xl font-bold text-gray-900">{totalMovies}</p>
-                <div className="flex items-center mt-2">
-                  <span className="text-gray-600 text-sm font-medium">
-                    Total movie titles available in catalog
-                  </span>
-                </div>
-              </div>
-              <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v18a1 1 0 01-1 1H4a1 1 0 01-1-1V1a1 1 0 011-1h2a1 1 0 011 1v3m8 0H7m8 0v3a1 1 0 01-1 1H8a1 1 0 01-1-1V4" />
                 </svg>
               </div>
             </div>
+            <p className="text-gray-500 text-sm font-medium mb-1">Total Movies</p>
+            <p className="text-3xl font-bold text-gray-900 mb-1">{totalMovies}</p>
+            <p className="text-xs text-gray-400">Available in catalog</p>
           </div>
           
-          <div className="bg-gray-100 rounded-lg p-6 hover:bg-gray-200 transition-colors duration-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Total Sales</p>
-                <p className="text-3xl font-bold text-gray-900">Rp {totalRevenue.toLocaleString()}</p>
-                <div className="flex items-center mt-2">
-                  <svg className="w-4 h-4 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                  </svg>
-                  <span className="text-green-600 text-sm font-medium">
-                    {formatGrowth(revenueGrowth30d)} from previous 30 days
-                  </span>
-                </div>
-              </div>
-              <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-md">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                 </svg>
               </div>
             </div>
+            <p className="text-gray-500 text-sm font-medium mb-1">Total Sales</p>
+            <p className="text-3xl font-bold text-gray-900 mb-1">Rp {totalRevenue.toLocaleString()}</p>
+            <div className="flex items-center">
+              <svg className="w-3 h-3 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+              <span className="text-green-600 text-xs font-medium">{formatGrowth(revenueGrowth30d)} vs last 30 days</span>
+            </div>
           </div>
 
-          <div className="bg-gray-100 rounded-lg p-6 hover:bg-gray-200 transition-colors duration-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Today's Orders</p>
-                <p className="text-3xl font-bold text-gray-900">{todayOrders}</p>
-                <div className="flex items-center mt-2">
-                  <svg className="w-4 h-4 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                  </svg>
-                  <span className="text-green-600 text-sm font-medium">
-                    {formatGrowth(todayOrdersGrowth)} from yesterday
-                  </span>
-                </div>
-              </div>
-              <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
                 </svg>
               </div>
             </div>
+            <p className="text-gray-500 text-sm font-medium mb-1">Today's Orders</p>
+            <p className="text-3xl font-bold text-gray-900 mb-1">{todayOrders}</p>
+            <div className="flex items-center">
+              <svg className="w-3 h-3 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+              <span className="text-green-600 text-xs font-medium">{formatGrowth(todayOrdersGrowth)} vs yesterday</span>
+            </div>
           </div>
 
-          <div className="bg-gray-100 rounded-lg p-6 hover:bg-gray-200 transition-colors duration-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Growth</p>
-                <p className="text-3xl font-bold text-purple-600">{formatGrowth(revenueGrowth30d)}</p>
-                <div className="flex items-center mt-2">
-                  <span className="text-green-600 text-sm font-medium">
-                    Compared to previous 30 days
-                  </span>
-                </div>
-              </div>
-              <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center shadow-md">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
               </div>
             </div>
+            <p className="text-gray-500 text-sm font-medium mb-1">Growth Rate</p>
+            <p className="text-3xl font-bold text-purple-600 mb-1">{formatGrowth(revenueGrowth30d)}</p>
+            <p className="text-xs text-gray-400">Last 30 days comparison</p>
           </div>
         </div>
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-6">Top Movies</h2>
         </div>
-        <div className="space-y-4">
-          {sortedMovies.map((movie, index) => (
-            <div key={movie.id} className="bg-gray-100 rounded-lg p-6 hover:bg-gray-200 transition-colors duration-200">
-              <div className="flex justify-between items-center gap-6">
-                <div className="flex items-center gap-4 flex-1">
-                  <span className="text-2xl font-bold text-purple-600 w-8 flex-shrink-0">{index + 1}</span>
-                  {movie.image ? (
-                    <img
-                      src={`data:image/jpeg;base64,${movie.image}`}
-                      alt={movie.title}
-                      className="w-16 h-24 object-cover rounded border border-gray-300 flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="w-16 h-24 bg-gray-300 rounded border border-gray-300 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Top Movies</h2>
+            <a href="/movies" className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">View all →</a>
+          </div>
+          <div className="space-y-3">
+            {sortedMovies.map((movie, index) => (
+              <div key={movie.id} className="bg-white rounded-xl p-4 hover:bg-gray-50 transition-all duration-200 border border-gray-200">
+                <div className="flex justify-between items-center gap-4">
+                  <div className="flex items-center gap-3 flex-1">
+                    <span className="text-lg font-bold text-gray-400 w-6">{index + 1}</span>
+                    {movie.image ? (
+                      <img
+                        src={`data:image/jpeg;base64,${movie.image}`}
+                        alt={movie.title}
+                        className="w-16 h-20 object-cover rounded-lg border border-white/40 flex-shrink-0 shadow-sm"
+                      />
+                    ) : (
+                      <div className="w-16 h-20 bg-gradient-to-br from-gray-200/60 to-gray-300/60 backdrop-blur-sm rounded-lg border border-white/40 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h3 className="text-base font-semibold text-gray-900 mb-0.5">{movie.title}</h3>
+                      <p className="text-gray-500 text-sm">Year: {movie.year}</p>
                     </div>
-                  )}
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900">{movie.title}</h3>
-                    <p className="text-gray-600 mt-1">Year: {movie.year}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-lg font-bold text-gray-900 mb-0.5">Rp {movie.revenue.toLocaleString()}</p>
+                    <p className="text-gray-500 text-xs">
+                      {movie.sales > 0 ? `${movie.sales} sold` : '0 sold'}
+                    </p>
                   </div>
                 </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-xl font-bold text-gray-900">Rp {movie.revenue.toLocaleString()}</p>
-                  <p className="text-gray-600 text-sm">
-                    {movie.sales > 0 ? `${movie.sales} sold` : '0 sold'}
-                  </p>
-                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
         {sortedMovies.length === 0 && (
           <div className="text-center py-20">

@@ -1,4 +1,6 @@
 require('dotenv').config();
+const path = require('path');
+const { spawn } = require('child_process');
 
 // Generate DATABASE_URL from individual PostgreSQL variables if not set
 if (!process.env.DATABASE_URL) {
@@ -21,17 +23,15 @@ if (!process.env.DATABASE_URL) {
     }
 }
 
-// Now run node-pg-migrate
-const { spawn } = require('child_process');
+// Path ke binary lokal node-pg-migrate di node_modules
+const migrateBin = path.resolve(__dirname, '..', 'node_modules', '.bin', 'node-pg-migrate');
 const args = process.argv.slice(2);
 
-const child = spawn('node-pg-migrate', args, {
+const child = spawn(migrateBin, args, {
     stdio: 'inherit',
-    shell: true
+    shell: false,
 });
 
 child.on('exit', (code) => {
     process.exit(code || 0);
 });
-
-

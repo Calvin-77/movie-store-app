@@ -11,11 +11,11 @@ struct Config {
     
     #if targetEnvironment(simulator)
     // Running di Simulator - gunakan localhost
-    static let baseURL = "http://localhost:3001"
+    static let baseURL = "http://localhost:5000"
     #else
     // Running di Device fisik - gunakan IP address Mac
     // GANTI IP INI DENGAN IP ADDRESS MAC ANDA
-    static let baseURL = "http://192.168.100.183:3001"
+    static let baseURL = "http://192.168.100.183:5000"
     #endif
     
     // Atau jika ingin lebih fleksibel, bisa uncomment baris ini

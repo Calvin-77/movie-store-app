@@ -36,7 +36,6 @@ struct TopUpView: View {
                         ) {
                             selectedAmount = amount
                             customAmount = ""
-                            print("Selected amount: \(amount)")
                         }
                     }
                 }
@@ -71,20 +70,16 @@ struct TopUpView: View {
                 
                 Button(action: {
                     guard let amount = selectedAmount, amount > 0, !isProcessing else {
-                        print("⚠️ Cannot process: amount=\(selectedAmount?.description ?? "nil"), isProcessing=\(isProcessing)")
                         return
                     }
                     Task {
                         isProcessing = true
-                        print("🔄 Processing topup: \(amount)")
                         do {
                             try await transactionController.topUpBalance(amount: amount)
-                            print("✅ Topup successful")
                             // Call success callback to refresh balance
                             onTopUpSuccess?()
                             dismiss()
                         } catch {
-                            print("❌ Topup error: \(error.localizedDescription)")
                             // TODO: Show error alert to user
                         }
                         isProcessing = false

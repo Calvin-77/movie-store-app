@@ -52,10 +52,10 @@ struct NominalButton: View {
 #Preview {
     VStack(spacing: 20){
         Text("Contoh tidak dipilih")
-        NominalButton(amount: 49000, isSelected: false, action: {print("Tombol 49000 ditekan")})
+        NominalButton(amount: 49000, isSelected: false, action: {})
         
         Text("Contoh dipilih")
-        NominalButton(amount: 49000, isSelected: true, action: {print("Tombol 49000 ditekan")})
+        NominalButton(amount: 49000, isSelected: true, action: {})
         
     }
 }

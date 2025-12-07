@@ -130,6 +130,12 @@ struct LogInView: View {
         .onTapGesture {
             focusedField = nil
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("RegistrationSuccessful"))) { _ in
+            // Registration successful, user is already back on login screen
+            // Optionally clear fields or show success message
+            username = ""
+            password = ""
+        }
         }
     }
 }

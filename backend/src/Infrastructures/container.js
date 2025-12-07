@@ -31,6 +31,7 @@ const AddMovieUseCase = require('../Applications/use_case/AddMovieUseCase');
 const TopupBalanceUseCase = require('../Applications/use_case/TopupBalanceUseCase');
 const PurchaseMovieUseCase = require('../Applications/use_case/PurchaseMovieUseCase');
 const GetUserTopupHistoryUseCase = require('../Applications/use_case/GetUserTopupHistoryUseCase');
+const GetUserTransactionHistoryUseCase = require('../Applications/use_case/GetUserTransactionHistoryUseCase');
 const GetAllSalesDataUseCase = require('../Applications/use_case/GetAllSalesDataUseCase');
 const UpdateMovieUseCase = require('../Applications/use_case/UpdateMovieUseCase');
 const DeleteMovieUseCase = require('../Applications/use_case/DeleteMovieUseCase');
@@ -276,6 +277,19 @@ container.register([
     {
         key: GetUserTopupHistoryUseCase.name,
         Class: GetUserTopupHistoryUseCase,
+        parameter: {
+            injectType: 'destructuring',
+            dependencies: [
+                {
+                    name: 'transactionRepository',
+                    internal: TransactionRepository.name,
+                },
+            ],
+        },
+    },
+    {
+        key: GetUserTransactionHistoryUseCase.name,
+        Class: GetUserTransactionHistoryUseCase,
         parameter: {
             injectType: 'destructuring',
             dependencies: [

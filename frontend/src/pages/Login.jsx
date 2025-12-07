@@ -57,7 +57,7 @@ function Login() {
         password: formData.password
       });
 
-      const response = await fetch('http://localhost:3001/authentications', {
+      const response = await fetch('http://localhost:5000/authentications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -88,10 +88,19 @@ function Login() {
       console.log('Success response data:', data);
 
       if (data.status === 'success') {
-        
+        const role = data.data?.role
+
+        // Hanya izinkan admin mengakses dashboard web
+        if (role !== 'admin') {
+          console.log('Login blocked for non-admin user with role:', role)
+          showToast('Only admin can access this dashboard.', 'error')
+          return
+        }
+
         localStorage.setItem('authToken', data.data.accessToken)
         localStorage.setItem('refreshToken', data.data.refreshToken)
-        
+        localStorage.setItem('userRole', role)
+
         console.log('Tokens stored successfully');
 
         window.dispatchEvent(new CustomEvent('auth-change'))

@@ -16,10 +16,8 @@ struct AlertNotification: View {
             }
             .alert("Choose an Option", isPresented: $showAlert) {
                 Button("Delete", role: .destructive){
-                    print("Option 1 selected")
                 }
                 Button("Cancel", role: .cancel){
-                    print("Cancelled")
                 }
             }
             message: {

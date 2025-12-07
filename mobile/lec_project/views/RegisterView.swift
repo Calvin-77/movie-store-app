@@ -16,6 +16,7 @@ struct RegisterView: View {
     @State private var isLoading = false
     @ObservedObject var controller = AuthController()
     @State private var navigateToLogin = false
+    @Environment(\.dismiss) var dismiss
     
     private enum FocusableField {
         case email
@@ -91,18 +92,22 @@ struct RegisterView: View {
             Spacer()
                 .frame(maxHeight: 54)
             
-            NavigationLink(destination: LogInView(), isActive: $navigateToLogin) { EmptyView() }
-            
             Button(action: {
                 Task {
                     isLoading = true
                     do {
                         let user = try await controller.register(username: username, email: email, password: password)
-                        navigateToLogin = true
+                        await MainActor.run {
+                            isLoading = false
+                            // Navigate to login after successful registration
+                            navigateToLogin = true
+                        }
                     } catch {
-                        // silently fail or add inline error state if needed
+                        await MainActor.run {
+                            isLoading = false
+                            // silently fail or add inline error state if needed
+                        }
                     }
-                    isLoading = false
                 }
             }) {
                 if isLoading {
@@ -124,7 +129,7 @@ struct RegisterView: View {
             HStack {
                 Text("Already have an account?")
                     .foregroundStyle(.gray)
-                NavigationLink(destination: LogInView()) {
+                NavigationLink(destination: LogInView(), isActive: $navigateToLogin) {
                     Text("Login here")
                         .fontWeight(.bold)
                         .foregroundStyle(.gray)

@@ -19,7 +19,7 @@ function Sidebar() {
 
       if (token && refreshToken) {
         
-        await fetch('http://localhost:3001/authentications', {
+        await fetch('http://localhost:5000/authentications', {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -84,32 +84,36 @@ function Sidebar() {
   ]
 
   return (
-    <div className="w-64 bg-white shadow-lg h-screen fixed left-0 top-0 z-40">
-      <div className="p-4 border-b border-gray-200">
+    <div className="w-64 bg-white/40 backdrop-blur-2xl shadow-2xl h-screen fixed left-0 top-0 z-40 border-r border-white/30">
+      <div className="p-6 border-b border-white/20">
         <div className="flex items-center">
-          <h1 className="text-gray-700 font-bold text-lg">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v18a1 1 0 01-1 1H4a1 1 0 01-1-1V1a1 1 0 011-1h2a1 1 0 011 1v3m8 0H7m8 0v3a1 1 0 01-1 1H8a1 1 0 01-1-1V4" />
+            </svg>
+          </div>
+          <h1 className="text-gray-900 font-bold text-xl">
             FilmHub
           </h1>
         </div>
       </div>
       <nav className="mt-6 px-4">
-        <h3 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-4">Menu</h3>
-        <ul className="space-y-2">
+        <ul className="space-y-1">
           {menuItems.map((item) => (
             <li key={item.id}>
               <Link
                 to={item.id}
                 onClick={() => setActiveItem(item.id)}
-                className={`w-full flex items-center px-3 py-3 text-left rounded-lg transition-colors duration-200 ${
+                className={`w-full flex items-center px-4 py-3 text-left rounded-xl transition-all duration-200 ${
                   location.pathname === item.id
-                    ? 'bg-purple-100 text-purple-700'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-600 shadow-md border border-emerald-200/30'
+                    : 'text-gray-600 hover:bg-white/30 hover:text-gray-900'
                 }`}
               >
-                <span className={`mr-3 ${location.pathname === item.id ? 'text-purple-700' : 'text-gray-400'}`}>
+                <span className={`mr-3 ${location.pathname === item.id ? 'text-emerald-600' : 'text-gray-500'}`}>
                   {item.icon}
                 </span>
-                <span className="font-medium">{item.name}</span>
+                <span className={`font-medium ${location.pathname === item.id ? 'text-emerald-600' : 'text-gray-700'}`}>{item.name}</span>
               </Link>
             </li>
           ))}
@@ -118,7 +122,7 @@ function Sidebar() {
       <div className="absolute bottom-0 left-0 right-0 p-4">
         <button 
           onClick={handleLogout}
-          className="flex items-center px-3 py-3 text-gray-600 hover:text-red-600 transition-colors duration-200 font-medium rounded-lg hover:bg-red-50"
+          className="flex items-center px-3 py-3 text-gray-700 hover:text-red-600 transition-all duration-200 font-medium rounded-xl hover:bg-white/20 backdrop-blur-sm border border-transparent hover:border-white/20"
         >
           <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

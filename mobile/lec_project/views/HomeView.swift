@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 struct HomeView: View {
     @StateObject private var controller = MovieController()
@@ -13,13 +14,11 @@ struct HomeView: View {
     @State private var movies: [Movie] = []
     @State private var balance: Int = 0
     @State private var showTopUp = false
-    @State private var showHistory = false
     @State private var selectedTopUpAmount: Int? = nil
     @StateObject private var transactionController = TransactionController()
     
     var body: some View {
-        NavigationStack {
-            VStack {
+        VStack {
                 HStack() {
                     Image(systemName: "movieclapper.fill")
                         .foregroundColor(.red)
@@ -50,21 +49,14 @@ struct HomeView: View {
                             }
                             .buttonStyle(.borderedProminent)
                             .tint(Color(hex: 0x673233))
-                            VStack {
-                                Button(action: {
-                                    showHistory = true
-                                }) {
-                                    HStack{
-                                        Image(systemName: "clock.arrow.circlepath")
-                                        Text("History")
-                                    }
+                            NavigationLink(destination: HistoryView()) {
+                                HStack{
+                                    Image(systemName: "clock.arrow.circlepath")
+                                    Text("History")
                                 }
                             }
                             .buttonStyle(.borderedProminent)
                             .tint(.gray)
-                            .navigationDestination(isPresented: $showHistory) {
-                                HistoryView()
-                            }
                         }
                         .padding(8)
                         .padding(.horizontal, 8)
@@ -82,29 +74,7 @@ struct HomeView: View {
                             ForEach(movies) { movie in
                                 NavigationLink(destination: MovieDetailView(movieId: movie.id)) {
                                     VStack(alignment: .leading, spacing: 8) {
-                                        if let imageUrl = movie.image, let url = URL(string: imageUrl) {
-                                            AsyncImage(url: url) { image in
-                                                image
-                                                    .resizable()
-                                                    .scaledToFill()
-                                            } placeholder: {
-                                                Rectangle()
-                                                    .fill(Color.gray.opacity(0.3))
-                                            }
-                                            .frame(height: 180)
-                                            .frame(maxWidth: .infinity)
-                                            .clipped()
-                                            .cornerRadius(8)
-                                        } else {
-                                            Rectangle()
-                                                .fill(Color.gray.opacity(0.3))
-                                                .frame(height: 180)
-                                                .cornerRadius(8)
-                                                .overlay(
-                                                    Image(systemName: "photo")
-                                                        .foregroundColor(.gray)
-                                                )
-                                        }
+                                        MovieImageView(imageString: movie.image, cornerRadius: 8, aspectRatio: 2/3)
 
                                         Text(movie.title)
                                             .font(.headline)
@@ -137,9 +107,8 @@ struct HomeView: View {
                 .task {
                     do {
                         movies = try await controller.getAllMovies()
-                        print("✅ Movies loaded: \(movies.count)")
                     } catch {
-                        print("❌ Error fetching movies: \(error.localizedDescription)")
+                        // Error fetching movies
                     }
                     
                     await refreshBalance()
@@ -156,9 +125,13 @@ struct HomeView: View {
                         await refreshBalance()
                     }
                 }
+                .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("MoviePurchased"))) { _ in
+                    Task {
+                        await refreshBalance()
+                    }
+                }
             }
             .background(Color(hex: 0x211111).ignoresSafeArea())
-        }
     }
 
     
@@ -171,15 +144,12 @@ struct HomeView: View {
             let totalSpent = purchasedMovies.reduce(0) { $0 + $1.price }
             
             balance = totalTopup - totalSpent
-            print("✅ Balance calculated: Topup=\(totalTopup), Spent=\(totalSpent), Balance=\(balance)")
         } catch {
-            print("⚠️ Error calculating balance: \(error.localizedDescription)")
             do {
                 let user = try await authController.getProfile()
-                balance = user.balance
-                print("✅ Balance from profile: \(balance)")
+                balance = user.balanceValue
             } catch {
-                print("⚠️ Could not get balance: \(error.localizedDescription)")
+                // Could not get balance
             }
         }
     }

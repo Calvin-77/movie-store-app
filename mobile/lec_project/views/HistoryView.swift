@@ -12,7 +12,6 @@ struct HistoryView: View {
     @State private var transactions: [Transaction] = []
     @State private var isLoading = false
     @State private var errorMessage: String?
-    @Environment(\.dismiss) var dismiss
     
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -22,116 +21,93 @@ struct HistoryView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color(Color(hex: 0x211111)).ignoresSafeArea()
-            
-            if isLoading {
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle())
-                    .scaleEffect(1.5)
-            } else if let errorMessage = errorMessage {
-                VStack(spacing: 16){
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.system(size: 50))
-                        .foregroundColor(.orange)
-                    Text("Oops!")
-                        .font(.title)
-                        .bold()
-                        .foregroundColor(.orange)
-                    Text(errorMessage)
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
-                        .padding()
-                }
-            } else if transactions.isEmpty {
-                VStack(spacing: 16){
-                    Image(systemName: "clock.arrow.circlepath")
-                        .font(.system(size: 50))
-                        .foregroundColor(Color(hex: 0x2D1D1D))
-                    Text("No Transactions Yet")
-                        .font(.title2)
-                        .foregroundColor(.white)
-                    Text("Your transaction history will appear here")
-                        .font(.caption)
-                        .foregroundColor(.white)
-                }
-            } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        ForEach(transactions) { transaction in
-                            HStack(spacing: 12) {
-                                Image(systemName: transaction.type == "topup" ? "plus.circle.fill" : "cart.fill")
-                                    .font(.title2)
-                                    .foregroundColor(transaction.type == "topup" ? .green : .blue)
-                                    .frame(width: 40)
-                                
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(transaction.type == "topup" ? "Top Up" : "Purchase Movie")
-                                        .font(.headline)
-                                        .foregroundColor(.white)
-                                    
-                                    Text(formatDate(transaction.date))
-                                        .font(.caption)
-                                        .foregroundColor(.white)
-                                    
-                                    if let movieId = transaction.movieId {
-                                        Text("Movie ID: \(movieId)")
-                                            .font(.caption2)
-                                            .foregroundColor(.white)
-                                    }
-                                }
-                                
-                                Spacer()
-                                
-                                Text(transaction.type == "topup" ? "+" : "-")
+        ZStack {
+            Color(Color(hex: 0x211111)).ignoresSafeArea()
+        
+        if isLoading {
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle())
+                .scaleEffect(1.5)
+        } else if let errorMessage = errorMessage {
+            VStack(spacing: 16){
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.system(size: 50))
+                    .foregroundColor(.orange)
+                Text("Oops!")
+                    .font(.title)
+                    .bold()
+                    .foregroundColor(.orange)
+                Text(errorMessage)
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                    .padding()
+            }
+        } else if transactions.isEmpty {
+            VStack(spacing: 16){
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.system(size: 50))
+                    .foregroundColor(Color(hex: 0x2D1D1D))
+                Text("No Transactions Yet")
+                    .font(.title2)
+                    .foregroundColor(.white)
+                Text("Your transaction history will appear here")
+                    .font(.caption)
+                    .foregroundColor(.white)
+            }
+        } else {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    ForEach(transactions) { transaction in
+                        HStack(spacing: 12) {
+                            Image(systemName: transaction.type == "topup" ? "plus.circle.fill" : "cart.fill")
+                                .font(.title2)
+                                .foregroundColor(transaction.type == "topup" ? .green : .blue)
+                                .frame(width: 40)
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(transaction.type == "topup" ? "Top Up" : "Purchase Movie")
                                     .font(.headline)
-                                    .foregroundColor(transaction.type == "topup" ? .green : .red)
-                                +
-                                Text("Rp \(transaction.amount)")
-                                    .font(.headline)
-                                    .foregroundColor(transaction.type == "topup" ? .green : .red)
+                                    .foregroundColor(.white)
+                                
+                                Text(formatDate(transaction.date))
+                                    .font(.caption)
+                                    .foregroundColor(.white)
                             }
-                            .padding()
-                            .background(Color.clear)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-                            )
-                            .padding(.horizontal)
+                            
+                            Spacer()
+                            
+                            Text(transaction.type == "topup" ? "+" : "-")
+                                .font(.headline)
+                                .foregroundColor(transaction.type == "topup" ? .green : .red)
+                            +
+                            Text("Rp \(transaction.amount)")
+                                .font(.headline)
+                                .foregroundColor(transaction.type == "topup" ? .green : .red)
                         }
-                    }
-                    .padding(.top)
-                }
-            }
-            }
-            .task {
-                await loadTransactions()
-            }
-            .refreshable {
-                await loadTransactions()
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("Transaction History")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                }
-                
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .foregroundColor(.white)
+                        .padding()
+                        .background(Color.clear)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                        )
+                        .padding(.horizontal)
                     }
                 }
+                .padding(.top)
             }
-            .toolbarBackground(Color(hex: 0x211111), for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
         }
+        }
+        .task {
+            await loadTransactions()
+        }
+        .refreshable {
+            await loadTransactions()
+        }
+        .navigationTitle("Transaction History")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Color(hex: 0x211111), for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
     }
     
     private func loadTransactions() async {
@@ -143,11 +119,9 @@ struct HistoryView: View {
                 // Sort by date descending (newest first)
                 return parseDate(t1.date) > parseDate(t2.date)
             }
-            print("✅ Loaded \(transactions.count) transactions")
             isLoading = false
         } catch {
             errorMessage = "Failed to load transaction history: \(error.localizedDescription)"
-            print("❌ Error: \(error.localizedDescription)")
             isLoading = false
         }
     }

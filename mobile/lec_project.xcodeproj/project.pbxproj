@@ -10,21 +10,9 @@
 		056EB6332E94EAD100D8C3FA /* lec_project.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = lec_project.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		84C1315B2EB0C56A00EA41C6 /* Exceptions for "lec_project" folder in "lec_project" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-			);
-			target = 056EB6322E94EAD100D8C3FA /* lec_project */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		056EB6352E94EAD100D8C3FA /* lec_project */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				84C1315B2EB0C56A00EA41C6 /* Exceptions for "lec_project" folder in "lec_project" target */,
-			);
 			path = lec_project;
 			sourceTree = "<group>";
 		};

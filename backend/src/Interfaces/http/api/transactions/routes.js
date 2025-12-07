@@ -25,6 +25,14 @@ const routes = (handler) => [
     },
     {
         method: 'GET',
+        path: '/transactions/history',
+        handler: handler.getUserTransactionHistoryHandler,
+        options: {
+            auth: 'tugaswebdesign_jwt',
+        },
+    },
+    {
+        method: 'GET',
         path: '/sales',
         handler: handler.getAllSalesDataHandler,
         options: {

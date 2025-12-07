@@ -1,9 +1,30 @@
+import { createPortal } from 'react-dom'
+
 function LogoutModal({ isOpen, onConfirm, onCancel }) {
   if (!isOpen) return null
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+  const modalContent = (
+    <div 
+      className="fixed inset-0 backdrop-blur-lg bg-black/10 flex items-center justify-center"
+      style={{ 
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        margin: 0,
+        padding: 0,
+        zIndex: 99999
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onCancel()
+        }
+      }}
+    >
+      <div className="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl border border-gray-200">
         <div className="flex items-center mb-4">
           <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
             <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -32,6 +53,8 @@ function LogoutModal({ isOpen, onConfirm, onCancel }) {
       </div>
     </div>
   )
+
+  return createPortal(modalContent, document.body)
 }
 
 export default LogoutModal

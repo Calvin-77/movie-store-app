@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '../hooks/useToast'
+import { fetchWithAuth } from '../utils/api'
 
 const fileToBase64 = (file) => {
   return new Promise((resolve, reject) => {
@@ -127,25 +128,29 @@ function AddMovie() {
       
       console.log('Movie data to be saved:', movieData)
       
-      const response = await fetch('http://localhost:3001/movies', {
+      const response = await fetchWithAuth('http://localhost:5000/movies', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify(movieData)
       })
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      let data
+      try {
+        data = await response.json()
+      } catch (parseError) {
+        console.error('Failed to parse response:', parseError)
+        throw new Error(`Server error: ${response.status}`)
       }
 
-      const data = await response.json()
+      if (!response.ok) {
+        const errorMessage = data.message || data.error || `HTTP error! status: ${response.status}`
+        console.error('Error response:', data)
+        showToast(errorMessage, 'error')
+        setLoading(false)
+        return
+      }
 
       if (data.status === 'success') {
-        
         showToast('Movie added successfully!', 'success')
-
         navigate('/movies')
       } else {
         showToast(data.message || 'Failed to add movie', 'error')
@@ -153,7 +158,8 @@ function AddMovie() {
       
     } catch (error) {
       console.error('Error adding movie:', error)
-      showToast('An error occurred while adding movie', 'error')
+      const errorMessage = error.message || 'An error occurred while adding movie. Please check console for details.'
+      showToast(errorMessage, 'error')
     } finally {
       setLoading(false)
     }
@@ -164,32 +170,21 @@ function AddMovie() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gray-50">
+    <div className="min-h-screen w-full bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
 
-      <header className="bg-white shadow-sm w-full">
+      <header className="bg-white/80 backdrop-blur-lg shadow-sm w-full border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
-                Add New Movie
-              </h1>
-              <p className="text-gray-600">Add a new movie to your collection</p>
-            </div>
-            <button
-              onClick={handleCancel}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Batal
-            </button>
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
+              Add New Movie
+            </h1>
+            <p className="text-gray-600">Add a new movie to your collection</p>
           </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-6 py-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200">
           <div className="p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
 
@@ -322,7 +317,13 @@ function AddMovie() {
                       id="image"
                       name="image"
                       accept="image/*"
+                      onChange={handleImageChange}
                     />
+                    {formData.imageFile && (
+                      <p className="mt-1 text-sm text-green-600">
+                        Selected: {formData.imageFile.name}
+                      </p>
+                    )}
                     <p className="mt-1 text-xs text-gray-500">
                       Optional. If provided, select an image file (JPG/PNG) that will be saved to the database.
                     </p>

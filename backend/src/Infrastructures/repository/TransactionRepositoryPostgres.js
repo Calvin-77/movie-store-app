@@ -19,9 +19,10 @@ class TransactionRepositoryPostgres extends TransactionRepository {
     }
 
     async getUserTransactions(userId) {
+        // Get only topup transactions for topup history
         const query = {
-            text: 'SELECT * FROM transactions WHERE user_id = $1 ORDER BY date DESC',
-            values: [userId],
+            text: 'SELECT * FROM transactions WHERE user_id = $1 AND type = $2 ORDER BY date DESC',
+            values: [userId, 'topup'],
         };
 
         const result = await this._pool.query(query);
@@ -37,7 +38,7 @@ class TransactionRepositoryPostgres extends TransactionRepository {
 
     async getUserTransactionHistory(userId) {
         const query = {
-            text: `SELECT t.id, t.type, t.amount, m.title as movie_title, t.date 
+            text: `SELECT t.id, t.type, t.amount, t.movie_id, m.title as movie_title, t.date 
                    FROM transactions t 
                    LEFT JOIN movies m ON t.movie_id = m.id 
                    WHERE t.user_id = $1 
@@ -50,6 +51,7 @@ class TransactionRepositoryPostgres extends TransactionRepository {
             id: row.id,
             type: row.type,
             amount: row.amount,
+            movie_id: row.movie_id,
             movieTitle: row.movie_title,
             date: row.date,
         }));
@@ -101,7 +103,7 @@ class TransactionRepositoryPostgres extends TransactionRepository {
             title: row.title,
             year: row.year,
             price: row.price,
-            image: row.image,
+            image: row.image ? row.image.toString('base64') : null,
             purchaseDate: row.purchase_date,
         }));
     }

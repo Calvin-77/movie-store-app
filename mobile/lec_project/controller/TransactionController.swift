@@ -26,9 +26,8 @@ class TransactionController: ObservableObject {
     }
 
     func getTransactionHistory() async throws -> [Transaction] {
-        // Get all transactions from /topup/history endpoint
-        // Note: This endpoint only returns topup transactions, not purchases
-        let url = URL(string: "\(baseURL)/topup/history")!
+        // Get all transactions (topup + purchase) from /transactions/history endpoint
+        let url = URL(string: "\(baseURL)/transactions/history")!
         
         var request = URLRequest(url: url)
         request.setValue("Bearer \(getToken())", forHTTPHeaderField: "Authorization")
@@ -41,8 +40,17 @@ class TransactionController: ObservableObject {
     }
     
     func getTopupHistory() async throws -> [Transaction] {
-        // Get only topup transactions
-        return try await getTransactionHistory()
+        // Get only topup transactions for balance calculation
+        let url = URL(string: "\(baseURL)/topup/history")!
+        
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(getToken())", forHTTPHeaderField: "Authorization")
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
+        
+        let response = try JSONDecoder().decode(TransactionResponse.self, from: data)
+        
+        return response.data.transactions
     }
 
     private func getToken() -> String {
