@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '../hooks/useToast'
 import { fetchWithAuth } from '../utils/api'
+import API_BASE_URL from '../config/api'
 
 const fileToBase64 = (file) => {
   return new Promise((resolve, reject) => {
@@ -128,7 +129,7 @@ function AddMovie() {
       
       console.log('Movie data to be saved:', movieData)
       
-      const response = await fetchWithAuth('http://localhost:5000/movies', {
+      const response = await fetchWithAuth(`${API_BASE_URL}/movies`, {
         method: 'POST',
         body: JSON.stringify(movieData)
       })

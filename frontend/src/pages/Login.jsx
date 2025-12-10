@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '../hooks/useToast'
+import API_BASE_URL from '../config/api'
 
 function Login() {
   const navigate = useNavigate()
@@ -57,7 +58,7 @@ function Login() {
         password: formData.password
       });
 
-      const response = await fetch('http://localhost:5000/authentications', {
+      const response = await fetch(`${API_BASE_URL}/authentications`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

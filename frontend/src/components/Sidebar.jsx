@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import LogoutModal from './LogoutModal'
+import API_BASE_URL from '../config/api'
 
 function Sidebar() {
   const location = useLocation()
@@ -19,7 +20,7 @@ function Sidebar() {
 
       if (token && refreshToken) {
         
-        await fetch('http://localhost:5000/authentications', {
+        await fetch(`${API_BASE_URL}/authentications`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`,

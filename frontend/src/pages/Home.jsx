@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useToast } from '../hooks/useToast'
 import { fetchWithAuth } from '../utils/api'
+import API_BASE_URL from '../config/api'
 
 function Home() {
   const { showToast } = useToast()
@@ -20,7 +21,7 @@ function Home() {
           return
         }
 
-        const salesResponse = await fetchWithAuth('http://localhost:5000/sales', {
+        const salesResponse = await fetchWithAuth(`${API_BASE_URL}/sales`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'
@@ -39,7 +40,7 @@ function Home() {
           showToast(salesData.message || 'Failed to load sales data', 'error')
         }
 
-        const moviesResponse = await fetchWithAuth('http://localhost:5000/movies', {
+        const moviesResponse = await fetchWithAuth(`${API_BASE_URL}/movies`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'
@@ -247,7 +248,6 @@ function Home() {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Top Movies</h2>
-            <a href="/movies" className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">View all →</a>
           </div>
           <div className="space-y-3">
             {sortedMovies.map((movie, index) => (

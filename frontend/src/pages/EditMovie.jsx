@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useToast } from '../hooks/useToast'
 import { fetchWithAuth } from '../utils/api'
+import API_BASE_URL from '../config/api'
 
 const fileToBase64 = (file) => {
   return new Promise((resolve, reject) => {
@@ -49,7 +50,7 @@ function EditMovie() {
         return
       }
       
-      const response = await fetchWithAuth(`http://localhost:5000/movies/${id}`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/movies/${id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -198,7 +199,7 @@ function EditMovie() {
       
       console.log('Updated movie data:', movieData)
       
-      const response = await fetchWithAuth(`http://localhost:5000/movies/${id}`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/movies/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

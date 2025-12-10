@@ -1,19 +1,48 @@
 import { useState, useEffect } from 'react'
 import { useToast } from '../hooks/useToast'
 import { fetchWithAuth } from '../utils/api'
+import API_BASE_URL from '../config/api'
 
 function SalesLineChart({ sales }) {
+  const [hoveredPoint, setHoveredPoint] = useState(null)
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 })
   
+  const salesDates = sales
+    .filter(sale => sale && sale.date)
+    .map(sale => {
+      const date = new Date(sale.date)
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid date:', sale.date)
+        return null
+      }
+      return date.toISOString().split('T')[0]
+    })
+    .filter(Boolean)
+    .sort()
+  
+  console.log('Sales dates extracted:', salesDates)
+  
+  let startDate, endDate
   const today = new Date()
-  const thirtyDaysAgo = new Date(today)
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
+  today.setHours(0, 0, 0, 0)
+  
+  if (salesDates.length > 0) {
+    startDate = new Date(salesDates[0])
+    endDate = new Date(salesDates[salesDates.length - 1])
+    if (endDate < today) {
+      endDate = new Date(today)
+    }
+  } else {
+    endDate = new Date(today)
+    startDate = new Date(today)
+    startDate.setDate(startDate.getDate() - 30)
+  }
+  
   const allDates = []
-  for (let i = 0; i < 30; i++) {
-    const date = new Date(thirtyDaysAgo)
-    date.setDate(date.getDate() + i)
-    const dateKey = date.toISOString().split('T')[0]
-    const dateLabel = date.toLocaleDateString('id-ID', {
+  const currentDate = new Date(startDate)
+  while (currentDate <= endDate) {
+    const dateKey = currentDate.toISOString().split('T')[0]
+    const dateLabel = currentDate.toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -21,20 +50,31 @@ function SalesLineChart({ sales }) {
     allDates.push({
       dateKey,
       dateLabel,
-      dateObj: date,
+      dateObj: new Date(currentDate),
       revenue: 0,
       count: 0
     })
+    currentDate.setDate(currentDate.getDate() + 1)
   }
 
   const salesByDate = sales.reduce((acc, sale) => {
+    if (!sale || !sale.date) return acc
+    
     const saleDate = new Date(sale.date)
+    if (isNaN(saleDate.getTime())) return acc
+    
     const dateKey = saleDate.toISOString().split('T')[0]
     
-    if (acc[dateKey]) {
-      acc[dateKey].revenue += sale.amount || 0
-      acc[dateKey].count += 1
+    if (!acc[dateKey]) {
+      acc[dateKey] = {
+        revenue: 0,
+        count: 0
+      }
     }
+    
+    acc[dateKey].revenue += sale.amount || 0
+    acc[dateKey].count += 1
+    
     return acc
   }, {})
 
@@ -49,10 +89,15 @@ function SalesLineChart({ sales }) {
     }
     return date
   })
+  
+  console.log('Chart data:', chartData)
+  console.log('Sales by date:', salesByDate)
 
-  const maxRevenue = 50000
+  const revenues = chartData.map(d => d.revenue).filter(r => r > 0)
+  const maxRevenue = revenues.length > 0 ? Math.max(...revenues) : 50000
+  const maxRevenueWithPadding = maxRevenue * 1.1
   const minRevenue = 0
-  const range = maxRevenue - minRevenue || 1
+  const range = maxRevenueWithPadding - minRevenue || 1
   const chartHeight = 320
   
   const chartWidth = 1000 
@@ -61,7 +106,7 @@ function SalesLineChart({ sales }) {
   const points = chartData.map((data, index) => {
     const x = padding + (index / (chartData.length - 1 || 1)) * (chartWidth - 2 * padding)
     
-    const y = chartHeight - padding - ((data.revenue - minRevenue) / range) * (chartHeight - 2 * padding)
+    const y = chartHeight - padding - ((data.revenue - minRevenue) / maxRevenueWithPadding) * (chartHeight - 2 * padding)
     return { x, y, ...data }
   })
 
@@ -73,8 +118,31 @@ function SalesLineChart({ sales }) {
     ? `${pathData} L ${points[points.length - 1].x} ${chartHeight - padding} L ${points[0].x} ${chartHeight - padding} Z`
     : ''
 
+  const handlePointHover = (point, event) => {
+    if (point.revenue === 0) return
+    
+    const svg = event.currentTarget.ownerSVGElement
+    const svgRect = svg.getBoundingClientRect()
+    const containerRect = svg.parentElement.getBoundingClientRect()
+    
+    const svgPoint = svg.createSVGPoint()
+    svgPoint.x = point.x
+    svgPoint.y = point.y
+    const screenPoint = svgPoint.matrixTransform(svg.getScreenCTM())
+    
+    setTooltipPosition({
+      x: screenPoint.x - containerRect.left,
+      y: screenPoint.y - containerRect.top
+    })
+    setHoveredPoint(point)
+  }
+
+  const handlePointLeave = () => {
+    setHoveredPoint(null)
+  }
+
   return (
-    <div className="w-full">
+    <div className="w-full relative">
       <svg 
         width="100%" 
         height={chartHeight} 
@@ -84,7 +152,7 @@ function SalesLineChart({ sales }) {
       >
         {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
           const y = chartHeight - padding - ratio * (chartHeight - 2 * padding)
-          const value = minRevenue + ratio * range
+          const value = minRevenue + ratio * maxRevenueWithPadding
           return (
             <g key={ratio}>
               <line
@@ -131,19 +199,41 @@ function SalesLineChart({ sales }) {
         />
         {points.map((point, index) => {
           if (point.revenue === 0) return null
+          const isHovered = hoveredPoint && hoveredPoint.dateKey === point.dateKey
           return (
             <g key={index}>
               <circle
                 cx={point.x}
                 cy={point.y}
-                r="4"
-                fill="#9333ea"
-                stroke="white"
-                strokeWidth="2"
+                r="20"
+                fill="transparent"
+                onMouseEnter={(e) => handlePointHover(point, e)}
+                onMouseLeave={handlePointLeave}
+                style={{ cursor: 'pointer' }}
               />
-              <title>
-                {point.dateLabel}: Rp {point.revenue.toLocaleString()} ({point.count} transactions)
-              </title>
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r={isHovered ? "6" : "4"}
+                fill={isHovered ? "#7c3aed" : "#9333ea"}
+                stroke="white"
+                strokeWidth={isHovered ? "3" : "2"}
+                style={{ transition: 'all 0.2s ease', cursor: 'pointer', pointerEvents: 'all' }}
+                onMouseEnter={(e) => handlePointHover(point, e)}
+                onMouseLeave={handlePointLeave}
+              />
+              {isHovered && (
+                <line
+                  x1={point.x}
+                  y1={padding}
+                  x2={point.x}
+                  y2={chartHeight - padding}
+                  stroke="#9333ea"
+                  strokeWidth="1"
+                  strokeDasharray="4 4"
+                  opacity="0.5"
+                />
+              )}
             </g>
           )
         })}
@@ -165,6 +255,39 @@ function SalesLineChart({ sales }) {
           )
         })}
       </svg>
+      {hoveredPoint && hoveredPoint.revenue > 0 && (
+        <div
+          className="absolute bg-gray-900 text-white rounded-lg shadow-xl p-3 pointer-events-none z-10"
+          style={{
+            left: `${tooltipPosition.x}px`,
+            top: `${tooltipPosition.y}px`,
+            transform: 'translate(-50%, -100%)',
+            marginTop: '-10px',
+            minWidth: '180px'
+          }}
+        >
+          <div className="text-xs font-semibold text-gray-300 mb-1">
+            {hoveredPoint.dateLabel}
+          </div>
+          <div className="text-lg font-bold text-white">
+            Rp {hoveredPoint.revenue.toLocaleString('id-ID')}
+          </div>
+          <div className="text-xs text-gray-400 mt-1">
+            {hoveredPoint.count} {hoveredPoint.count === 1 ? 'transaction' : 'transactions'}
+          </div>
+          <div
+            className="absolute left-1/2 transform -translate-x-1/2"
+            style={{
+              bottom: '-6px',
+              width: 0,
+              height: 0,
+              borderLeft: '6px solid transparent',
+              borderRight: '6px solid transparent',
+              borderTop: '6px solid #111827'
+            }}
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -174,6 +297,7 @@ function Reports() {
   const [loading, setLoading] = useState(true)
   const [selectedPeriod, setSelectedPeriod] = useState('month') 
   const [sales, setSales] = useState([])
+  const [movies, setMovies] = useState([])
 
   useEffect(() => {
     const loadReportsData = async () => {
@@ -186,7 +310,7 @@ function Reports() {
           return
         }
 
-        const response = await fetchWithAuth('http://localhost:5000/sales', {
+        const response = await fetchWithAuth(`${API_BASE_URL}/sales`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'
@@ -203,6 +327,20 @@ function Reports() {
           setSales(data.data.salesData || [])
         } else {
           showToast(data.message || 'Failed to load sales report', 'error')
+        }
+
+        const moviesResponse = await fetchWithAuth(`${API_BASE_URL}/movies`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (moviesResponse.ok) {
+          const moviesData = await moviesResponse.json()
+          if (moviesData.status === 'success') {
+            setMovies(moviesData.data.movies || [])
+          }
         }
       } catch (error) {
         console.error('Error loading reports data:', error)
@@ -304,9 +442,33 @@ function Reports() {
     return acc
   }, {})
 
-  const topMoviesPeriod = Object.values(periodMovieAggregates)
-    .sort((a, b) => b.sales - a.sales)
-    .slice(0, 5)
+  let topMoviesPeriod
+  if (selectedPeriod === 'all') {
+    const allMoviesWithSales = movies.map(movie => {
+      const salesData = periodMovieAggregates[movie.title] || { sales: 0, revenue: 0 }
+      return {
+        ...movie,
+        sales: salesData.sales,
+        revenue: salesData.revenue
+      }
+    })
+    
+    topMoviesPeriod = allMoviesWithSales.sort((a, b) => {
+      if (b.sales === a.sales) {
+        return b.revenue - a.revenue
+      }
+      return b.sales - a.sales
+    })
+  } else {
+    topMoviesPeriod = Object.values(periodMovieAggregates)
+      .sort((a, b) => {
+        if (b.sales === a.sales) {
+          return b.revenue - a.revenue
+        }
+        return b.sales - a.sales
+      })
+      .slice(0, 5)
+  }
 
   const sortedPeriodSales = [...periodSales].sort(
     (a, b) => new Date(b.date) - new Date(a.date)
@@ -499,23 +661,60 @@ function Reports() {
           </div>
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Top Movies</h3>
-            <div className="space-y-4">
+            <div className={selectedPeriod === 'all' ? 'space-y-3 max-h-96 overflow-y-auto' : 'space-y-4'}>
               {topMoviesPeriod.length === 0 && (
                 <p className="text-sm text-gray-500">No movies sold in this period.</p>
               )}
               {topMoviesPeriod.map((movie, index) => (
-                <div key={movie.title} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3">
-                      {index + 1}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{movie.title}</p>
-                      <p className="text-xs text-gray-500">{movie.sales} sold</p>
-                    </div>
+                <div 
+                  key={selectedPeriod === 'all' ? movie.id : movie.title} 
+                  className={`${selectedPeriod === 'all' ? 'bg-white rounded-xl p-4 hover:bg-gray-50 transition-all duration-200 border border-gray-200' : ''} flex items-center justify-between`}
+                >
+                  <div className="flex items-center gap-3 flex-1">
+                    {selectedPeriod === 'all' ? (
+                      <>
+                        <span className="text-lg font-bold text-gray-400 w-6">{index + 1}</span>
+                        {movie.image ? (
+                          <img
+                            src={`data:image/jpeg;base64,${movie.image}`}
+                            alt={movie.title}
+                            className="w-16 h-20 object-cover rounded-lg border border-white/40 flex-shrink-0 shadow-sm"
+                          />
+                        ) : (
+                          <div className="w-16 h-20 bg-gradient-to-br from-gray-200/60 to-gray-300/60 backdrop-blur-sm rounded-lg border border-white/40 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <h3 className="text-base font-semibold text-gray-900 mb-0.5">{movie.title}</h3>
+                          <p className="text-gray-500 text-sm">Year: {movie.year || 'N/A'}</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold mr-3">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{movie.title}</p>
+                          <p className="text-xs text-gray-500">{movie.sales} sold</p>
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <div className="text-sm font-medium text-gray-900">
-                    Rp {movie.revenue.toLocaleString()}
+                  <div className={`text-right flex-shrink-0 ${selectedPeriod === 'all' ? '' : 'text-sm font-medium text-gray-900'}`}>
+                    {selectedPeriod === 'all' ? (
+                      <>
+                        <p className="text-lg font-bold text-gray-900 mb-0.5">Rp {movie.revenue.toLocaleString()}</p>
+                        <p className="text-gray-500 text-xs">
+                          {movie.sales > 0 ? `${movie.sales} sold` : '0 sold'}
+                        </p>
+                      </>
+                    ) : (
+                      <p>Rp {movie.revenue.toLocaleString()}</p>
+                    )}
                   </div>
                 </div>
               ))}

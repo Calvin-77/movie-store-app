@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useToast } from '../hooks/useToast'
 import { fetchWithAuth } from '../utils/api'
 import DeleteMovieModal from '../components/DeleteMovieModal'
+import API_BASE_URL from '../config/api'
 
 function MovieManagement() {
   const navigate = useNavigate()
@@ -23,27 +24,53 @@ function MovieManagement() {
   const loadMovies = async () => {
     try {
       setLoading(true)
-      const response = await fetchWithAuth('http://localhost:5000/movies', {
+      console.log('Fetching movies from:', `${API_BASE_URL}/movies`)
+      
+      const response = await fetchWithAuth(`${API_BASE_URL}/movies`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
         }
       })
       
+      console.log('Response status:', response.status, response.statusText)
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        let errorMessage = `HTTP error! status: ${response.status}`
+        try {
+          const errorData = await response.json()
+          console.error('Error response data:', errorData)
+          errorMessage = errorData.message || errorMessage
+        } catch (e) {
+          console.error('Could not parse error response as JSON')
+        }
+        throw new Error(errorMessage)
       }
       
       const data = await response.json()
+      console.log('Movies data received:', data)
       
       if (data.status === 'success') {
-        setMovies(data.data.movies)
+        setMovies(data.data.movies || [])
       } else {
-        showToast('Failed to load movie list', 'error')
+        showToast(data.message || 'Failed to load movie list', 'error')
       }
     } catch (error) {
       console.error('Error loading movies:', error)
-      showToast('An error occurred while loading movies', 'error')
+      console.error('Error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      })
+      
+      // Provide more specific error messages
+      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        showToast('Cannot connect to server. Make sure backend is running on port 5000.', 'error')
+      } else if (error.message.includes('401')) {
+        showToast('Authentication failed. Please login again.', 'error')
+      } else {
+        showToast(`Error: ${error.message}`, 'error')
+      }
     } finally {
       setLoading(false)
     }
@@ -73,7 +100,7 @@ function MovieManagement() {
         return
       }
 
-      const response = await fetchWithAuth(`http://localhost:5000/movies/${deleteModal.movieId}`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/movies/${deleteModal.movieId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'
