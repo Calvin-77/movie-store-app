@@ -93,7 +93,7 @@ function Sidebar() {
             </svg>
           </div>
           <h1 className="text-gray-900 font-bold text-xl">
-            FilmHub
+            LK12
           </h1>
         </div>
       </div>

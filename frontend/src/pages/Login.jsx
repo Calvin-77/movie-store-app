@@ -133,7 +133,7 @@ function Login() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">FilmHub</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Layar Kaca 12</h1>
           <h2 className="text-xl text-gray-600">Admin Dashboard</h2>
         </div>
         <p className="mt-2 text-center text-sm text-gray-600">
@@ -213,24 +213,7 @@ function Login() {
             </div>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Demo Credentials</span>
-              </div>
-            </div>
-
-             <div className="mt-4 bg-gray-50 p-4 rounded-md">
-               <p className="text-sm text-gray-600 mb-2">Use the following credentials for testing:</p>
-               <div className="text-sm">
-                 <p><span className="font-medium">Username:</span> admin</p>
-                 <p><span className="font-medium">Password:</span> admin</p>
-               </div>
-             </div>
-          </div>
+          
         </div>
       </div>
     </div>

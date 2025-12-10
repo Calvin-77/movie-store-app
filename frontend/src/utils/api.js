@@ -19,7 +19,7 @@ export const fetchWithAuth = async (url, options = {}) => {
   let response = await fetch(url, {
     ...options,
     headers,
-  })
+  })      
   
   // If token expired (401), try to refresh
   if (response.status === 401 && token) {
@@ -84,5 +84,7 @@ export const fetchWithAuth = async (url, options = {}) => {
   
   return response
 }
+
+
 
 

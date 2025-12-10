@@ -22,7 +22,7 @@ struct HomeView: View {
                 HStack() {
                     Image(systemName: "movieclapper.fill")
                         .foregroundColor(.red)
-                    Text("CineStream")
+                    Text("LK12")
                         .font(.title)
                         .foregroundStyle(.white)
                         .bold()
